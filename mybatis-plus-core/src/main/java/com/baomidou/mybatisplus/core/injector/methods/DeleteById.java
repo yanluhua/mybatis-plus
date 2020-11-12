@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,12 +15,11 @@
  */
 package com.baomidou.mybatisplus.core.injector.methods;
 
-import org.apache.ibatis.mapping.MappedStatement;
-import org.apache.ibatis.mapping.SqlSource;
-
 import com.baomidou.mybatisplus.core.enums.SqlMethod;
 import com.baomidou.mybatisplus.core.injector.AbstractMethod;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
+import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.SqlSource;
 
 /**
  * 根据 ID 删除
@@ -32,9 +31,20 @@ public class DeleteById extends AbstractMethod {
 
     @Override
     public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
-        SqlMethod sqlMethod = SqlMethod.DELETE_BY_ID;
-        SqlSource sqlSource = languageDriver.createSqlSource(configuration, String.format(sqlMethod.getSql(),
-            tableInfo.getTableName(), tableInfo.getKeyColumn(), tableInfo.getKeyProperty()), Object.class);
-        return this.addDeleteMappedStatement(mapperClass, sqlMethod.getMethod(), sqlSource);
+        String sql;
+        SqlMethod sqlMethod = SqlMethod.LOGIC_DELETE_BY_ID;
+        if (tableInfo.isWithLogicDelete()) {
+            sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(), sqlLogicSet(tableInfo),
+                tableInfo.getKeyColumn(), tableInfo.getKeyProperty(),
+                tableInfo.getLogicDeleteSql(true, true));
+            SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, Object.class);
+            return addUpdateMappedStatement(mapperClass, modelClass, getMethod(sqlMethod), sqlSource);
+        } else {
+            sqlMethod = SqlMethod.DELETE_BY_ID;
+            sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(), tableInfo.getKeyColumn(),
+                tableInfo.getKeyProperty());
+            SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, Object.class);
+            return this.addDeleteMappedStatement(mapperClass, getMethod(sqlMethod), sqlSource);
+        }
     }
 }

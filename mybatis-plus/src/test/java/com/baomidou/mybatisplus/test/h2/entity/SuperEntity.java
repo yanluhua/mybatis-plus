@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -33,7 +33,12 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = true)
 public class SuperEntity extends SuSuperEntity implements Serializable {
 
-    /* 主键ID 注解，value 字段名，type 用户输入ID */
+    /**
+	 *  serialVersionUID
+	 */
+	private static final long serialVersionUID = -3111558058262086115L;
+	
+	/* 主键ID 注解，value 字段名，type 用户输入ID */
     @TableId
     private Long testId;
 

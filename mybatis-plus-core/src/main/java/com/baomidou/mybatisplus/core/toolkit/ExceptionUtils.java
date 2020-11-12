@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -36,7 +36,7 @@ public final class ExceptionUtils {
      * @return 返回异常
      */
     public static MybatisPlusException mpe(String msg, Throwable t, Object... params) {
-        return new MybatisPlusException(StringUtils.format(msg, params), t);
+        return new MybatisPlusException(String.format(msg, params), t);
     }
 
     /**
@@ -46,7 +46,7 @@ public final class ExceptionUtils {
      * @return 返回异常
      */
     public static MybatisPlusException mpe(String msg, Object... params) {
-        return new MybatisPlusException(StringUtils.format(msg, params));
+        return new MybatisPlusException(String.format(msg, params));
     }
 
     /**

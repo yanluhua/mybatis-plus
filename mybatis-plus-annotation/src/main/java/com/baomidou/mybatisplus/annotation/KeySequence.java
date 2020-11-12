@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,12 +15,7 @@
  */
 package com.baomidou.mybatisplus.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * 序列主键策略
@@ -42,7 +37,8 @@ public @interface KeySequence {
 
     /**
      * id的类型
+     * @deprecated 3.1.2 自动匹配,无需指定
      */
-    Class clazz() default Long.class;
-
+    @Deprecated
+    Class<?> clazz() default Long.class;
 }

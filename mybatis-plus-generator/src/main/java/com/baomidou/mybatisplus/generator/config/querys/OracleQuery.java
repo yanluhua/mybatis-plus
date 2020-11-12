@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,8 +15,6 @@
  */
 package com.baomidou.mybatisplus.generator.config.querys;
 
-import com.baomidou.mybatisplus.annotation.DbType;
-
 /**
  * Oracle 表数据查询
  *
@@ -24,13 +22,6 @@ import com.baomidou.mybatisplus.annotation.DbType;
  * @since 2018-01-16
  */
 public class OracleQuery extends AbstractDbQuery {
-
-
-    @Override
-    public DbType dbType() {
-        return DbType.ORACLE;
-    }
-
 
     @Override
     public String tablesSql() {

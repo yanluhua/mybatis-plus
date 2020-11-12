@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import static java.util.stream.Collectors.toList;
 
@@ -190,6 +191,13 @@ public interface Func<Children, R> extends Serializable {
     /**
      * ignore
      */
+    default Children groupBy(R column) {
+        return groupBy(true, column);
+    }
+
+    /**
+     * ignore
+     */
     default Children groupBy(R... columns) {
         return groupBy(true, columns);
     }
@@ -285,4 +293,20 @@ public interface Func<Children, R> extends Serializable {
      * @return children
      */
     Children having(boolean condition, String sqlHaving, Object... params);
+
+    /**
+     * ignore
+     */
+    default Children func(Consumer<Children> consumer) {
+        return func(true, consumer);
+    }
+
+    /**
+     * 消费函数
+     *
+     * @param consumer 消费函数
+     * @return children
+     * @since 3.3.1
+     */
+    Children func(boolean condition, Consumer<Children> consumer);
 }

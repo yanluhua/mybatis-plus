@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.baomidou.mybatisplus.extension.plugins;
 
 import com.baomidou.mybatisplus.core.exceptions.MybatisPlusException;
@@ -5,6 +20,7 @@ import com.baomidou.mybatisplus.core.parser.SqlParserHelper;
 import com.baomidou.mybatisplus.core.toolkit.EncryptUtils;
 import com.baomidou.mybatisplus.core.toolkit.PluginUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.extension.plugins.inner.IllegalSQLInnerInterceptor;
 import lombok.Data;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
@@ -44,12 +60,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>SQL是影响系统性能最重要的因素，所以拦截掉垃圾SQL语句</p>
  * <br>
  * <p>拦截SQL类型的场景</p>
- * <p>1.必须使用到索引，包含left jion连接字段，符合索引最左原则</p>
+ * <p>1.必须使用到索引，包含left join连接字段，符合索引最左原则</p>
  * <p>必须使用索引好处，</p>
  * <p>1.1 如果因为动态SQL，bug导致update的where条件没有带上，全表更新上万条数据</p>
  * <p>1.2 如果检查到使用了索引，SQL性能基本不会太差</p>
  * <br>
- * <p>2.SQL尽量单表执行，有查询left jion的语句，必须在注释里面允许该SQL运行，否则会被拦截，有left jion的语句，如果不能拆成单表执行的SQL，请leader商量在做</p>
+ * <p>2.SQL尽量单表执行，有查询left join的语句，必须在注释里面允许该SQL运行，否则会被拦截，有left join的语句，如果不能拆成单表执行的SQL，请leader商量在做</p>
  * <p>https://gaoxianglong.github.io/shark</p>
  * <p>SQL尽量单表执行的好处</p>
  * <p>2.1 查询条件简单、易于开理解和维护；</p>
@@ -62,9 +78,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>5.where条件使用了 not 关键字</p>
  * <p>6.where条件使用了 or 关键字</p>
  * <p>7.where条件使用了 使用子查询</p>
+ *
  * @author willenfoo
- * @date 2018-03-22
+ * @since 2018-03-22
+ * @deprecated 3.4.0 please use {@link MybatisPlusInterceptor} {@link IllegalSQLInnerInterceptor}
  */
+@Deprecated
 @Intercepts({@Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class})})
 public class IllegalSQLInterceptor implements Interceptor {
 
@@ -95,9 +114,10 @@ public class IllegalSQLInterceptor implements Interceptor {
             throw new MybatisPlusException("非法SQL，where条件中不能使用【!=】关键字，错误!=信息：" + notEqualsTo.toString());
         } else if (expression instanceof BinaryExpression) {
             BinaryExpression binaryExpression = (BinaryExpression) expression;
-            if (binaryExpression.isNot()) {
-                throw new MybatisPlusException("非法SQL，where条件中不能使用【not】关键字，错误not信息：" + binaryExpression.toString());
-            }
+            // TODO 升级 jsqlparser 后待实现
+//            if (binaryExpression.isNot()) {
+//                throw new MybatisPlusException("非法SQL，where条件中不能使用【not】关键字，错误not信息：" + binaryExpression.toString());
+//            }
             if (binaryExpression.getLeftExpression() instanceof Function) {
                 Function function = (Function) binaryExpression.getLeftExpression();
                 throw new MybatisPlusException("非法SQL，where条件中不能使用数据库函数，错误函数信息：" + function.toString());
@@ -119,8 +139,8 @@ public class IllegalSQLInterceptor implements Interceptor {
     /**
      * 如果SQL用了 left Join，验证是否有or、not等等，并且验证是否使用了索引
      *
-     * @param joins ignore
-     * @param table ignore
+     * @param joins      ignore
+     * @param table      ignore
      * @param connection ignore
      */
     private static void validJoins(List<Join> joins, Table table, Connection connection) {
@@ -137,7 +157,7 @@ public class IllegalSQLInterceptor implements Interceptor {
     /**
      * 检查是否使用索引
      *
-     * @param table ignore
+     * @param table      ignore
      * @param columnName ignore
      * @param connection ignore
      */
@@ -158,7 +178,7 @@ public class IllegalSQLInterceptor implements Interceptor {
         }
         List<IndexInfo> indexInfos = getIndexInfos(dbName, tableName, connection);
         for (IndexInfo indexInfo : indexInfos) {
-            if (Objects.equals(columnName, indexInfo.getColumnName())) {
+            if (null != columnName && columnName.equalsIgnoreCase(indexInfo.getColumnName())) {
                 useIndexFlag = true;
                 break;
             }
@@ -172,7 +192,7 @@ public class IllegalSQLInterceptor implements Interceptor {
      * 验证where条件的字段，是否有not、or等等，并且where的第一个字段，必须使用索引
      *
      * @param expression ignore
-     * @param table ignore
+     * @param table      ignore
      * @param connection ignore
      */
     private static void validWhere(Expression expression, Table table, Connection connection) {
@@ -183,8 +203,8 @@ public class IllegalSQLInterceptor implements Interceptor {
      * 验证where条件的字段，是否有not、or等等，并且where的第一个字段，必须使用索引
      *
      * @param expression ignore
-     * @param table ignore
-     * @param joinTable ignore
+     * @param table      ignore
+     * @param joinTable  ignore
      * @param connection ignore
      */
     private static void validWhere(Expression expression, Table table, Table joinTable, Connection connection) {
@@ -224,9 +244,9 @@ public class IllegalSQLInterceptor implements Interceptor {
     /**
      * 得到表的索引信息
      *
-     * @param dbName ignore
+     * @param dbName    ignore
      * @param tableName ignore
-     * @param conn ignore
+     * @param conn      ignore
      * @return ignore
      */
     public static List<IndexInfo> getIndexInfos(String dbName, String tableName, Connection conn) {
@@ -236,22 +256,24 @@ public class IllegalSQLInterceptor implements Interceptor {
     /**
      * 得到表的索引信息
      *
-     * @param key ignore
-     * @param dbName ignore
+     * @param key       ignore
+     * @param dbName    ignore
      * @param tableName ignore
-     * @param conn ignore
+     * @param conn      ignore
      * @return ignore
      */
     public static List<IndexInfo> getIndexInfos(String key, String dbName, String tableName, Connection conn) {
         List<IndexInfo> indexInfos = null;
-        if (StringUtils.isNotEmpty(key)) {
+        if (StringUtils.isNotBlank(key)) {
             indexInfos = indexInfoMap.get(key);
         }
         if (indexInfos == null || indexInfos.isEmpty()) {
             ResultSet rs;
             try {
                 DatabaseMetaData metadata = conn.getMetaData();
-                rs = metadata.getIndexInfo(dbName, dbName, tableName, false, true);
+                String catalog = StringUtils.isBlank(dbName) ? conn.getCatalog() : dbName;
+                String schema = StringUtils.isBlank(dbName) ? conn.getSchema() : dbName;
+                rs = metadata.getIndexInfo(catalog, schema, tableName, false, true);
                 indexInfos = new ArrayList<>();
                 while (rs.next()) {
                     //索引中的列序列号等于1，才有效
@@ -263,7 +285,7 @@ public class IllegalSQLInterceptor implements Interceptor {
                         indexInfos.add(indexInfo);
                     }
                 }
-                if (StringUtils.isNotEmpty(key)) {
+                if (StringUtils.isNotBlank(key)) {
                     indexInfoMap.put(key, indexInfos);
                 }
             } catch (SQLException e) {
@@ -303,7 +325,7 @@ public class IllegalSQLInterceptor implements Interceptor {
         } else if (statement instanceof Update) {
             Update update = (Update) statement;
             where = update.getWhere();
-            table = update.getTables().get(0);
+            table = update.getTable();
             joins = update.getJoins();
         } else if (statement instanceof Delete) {
             Delete delete = (Delete) statement;
@@ -328,11 +350,6 @@ public class IllegalSQLInterceptor implements Interceptor {
             return Plugin.wrap(target, this);
         }
         return target;
-    }
-
-    @Override
-    public void setProperties(Properties prop) {
-
     }
 
     /**

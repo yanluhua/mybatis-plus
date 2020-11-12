@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,14 +18,16 @@ package com.baomidou.mybatisplus.extension.activerecord;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.enums.SqlMethod;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.core.toolkit.*;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.baomidou.mybatisplus.extension.toolkit.SqlRunner;
+import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.session.SqlSession;
 import org.mybatis.spring.SqlSessionUtils;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,9 +43,11 @@ import java.util.Objects;
  * @author hubin
  * @since 2016-11-06
  */
-public abstract class Model<T extends Model> implements Serializable {
+public abstract class Model<T extends Model<?>> implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    private final transient Log log = LogFactory.getLog(getClass());
 
     /**
      * 插入（字段选择插入）
@@ -72,7 +76,7 @@ public abstract class Model<T extends Model> implements Serializable {
     public boolean deleteById(Serializable id) {
         SqlSession sqlSession = sqlSession();
         try {
-            return SqlHelper.delBool(sqlSession.delete(sqlStatement(SqlMethod.DELETE_BY_ID), id));
+            return SqlHelper.retBool(sqlSession.delete(sqlStatement(SqlMethod.DELETE_BY_ID), id));
         } finally {
             closeSqlSession(sqlSession);
         }
@@ -92,11 +96,11 @@ public abstract class Model<T extends Model> implements Serializable {
      * @param queryWrapper 实体对象封装操作类（可以为 null）
      */
     public boolean delete(Wrapper<T> queryWrapper) {
-        Map<String, Object> map = new HashMap<>(1);
+        Map<String, Object> map = CollectionUtils.newHashMapWithExpectedSize(1);
         map.put(Constants.WRAPPER, queryWrapper);
         SqlSession sqlSession = sqlSession();
         try {
-            return SqlHelper.delBool(sqlSession.delete(sqlStatement(SqlMethod.DELETE), map));
+            return SqlHelper.retBool(sqlSession.delete(sqlStatement(SqlMethod.DELETE), map));
         } finally {
             closeSqlSession(sqlSession);
         }
@@ -108,7 +112,7 @@ public abstract class Model<T extends Model> implements Serializable {
     public boolean updateById() {
         Assert.isFalse(StringUtils.checkValNull(pkVal()), "updateById primaryKey is null.");
         // updateById
-        Map<String, Object> map = new HashMap<>(1);
+        Map<String, Object> map = CollectionUtils.newHashMapWithExpectedSize(1);
         map.put(Constants.ENTITY, this);
         SqlSession sqlSession = sqlSession();
         try {
@@ -124,7 +128,7 @@ public abstract class Model<T extends Model> implements Serializable {
      * @param updateWrapper 实体对象封装操作类（可以为 null,里面的 entity 用于生成 where 语句）
      */
     public boolean update(Wrapper<T> updateWrapper) {
-        Map<String, Object> map = new HashMap<>(2);
+        Map<String, Object> map = CollectionUtils.newHashMapWithExpectedSize(2);
         map.put(Constants.ENTITY, this);
         map.put(Constants.WRAPPER, updateWrapper);
         // update
@@ -175,9 +179,8 @@ public abstract class Model<T extends Model> implements Serializable {
      *
      * @param queryWrapper 实体对象封装操作类（可以为 null）
      */
-
     public List<T> selectList(Wrapper<T> queryWrapper) {
-        Map<String, Object> map = new HashMap<>(1);
+        Map<String, Object> map = CollectionUtils.newHashMapWithExpectedSize(1);
         map.put(Constants.WRAPPER, queryWrapper);
         SqlSession sqlSession = sqlSession();
         try {
@@ -193,7 +196,7 @@ public abstract class Model<T extends Model> implements Serializable {
      * @param queryWrapper 实体对象封装操作类（可以为 null）
      */
     public T selectOne(Wrapper<T> queryWrapper) {
-        return SqlHelper.getObject(selectList(queryWrapper));
+        return SqlHelper.getObject(log, selectList(queryWrapper));
     }
 
     /**
@@ -202,8 +205,8 @@ public abstract class Model<T extends Model> implements Serializable {
      * @param page         翻页查询条件
      * @param queryWrapper 实体对象封装操作类（可以为 null）
      */
-    public IPage<T> selectPage(IPage<T> page, Wrapper<T> queryWrapper) {
-        Map<String, Object> map = new HashMap<>(2);
+    public <E extends IPage<T>> E selectPage(E page, Wrapper<T> queryWrapper) {
+        Map<String, Object> map = CollectionUtils.newHashMapWithExpectedSize(2);
         map.put(Constants.WRAPPER, queryWrapper);
         map.put("page", page);
         SqlSession sqlSession = sqlSession();
@@ -221,7 +224,7 @@ public abstract class Model<T extends Model> implements Serializable {
      * @param queryWrapper 实体对象封装操作类（可以为 null）
      */
     public Integer selectCount(Wrapper<T> queryWrapper) {
-        Map<String, Object> map = new HashMap<>(1);
+        Map<String, Object> map = CollectionUtils.newHashMapWithExpectedSize(1);
         map.put(Constants.WRAPPER, queryWrapper);
         SqlSession sqlSession = sqlSession();
         try {
@@ -260,6 +263,7 @@ public abstract class Model<T extends Model> implements Serializable {
      * @param sqlMethod sqlMethod
      */
     protected String sqlStatement(String sqlMethod) {
+        //无法确定对应的mapper，只能用注入时候绑定的了。
         return SqlHelper.table(getClass()).getSqlStatement(sqlMethod);
     }
 
@@ -267,7 +271,7 @@ public abstract class Model<T extends Model> implements Serializable {
      * 主键值
      */
     protected Serializable pkVal() {
-        return (Serializable) ReflectionKit.getMethodValue(this, TableInfoHelper.getTableInfo(getClass()).getKeyProperty());
+        return (Serializable) ReflectionKit.getFieldValue(this, TableInfoHelper.getTableInfo(getClass()).getKeyProperty());
     }
 
     /**

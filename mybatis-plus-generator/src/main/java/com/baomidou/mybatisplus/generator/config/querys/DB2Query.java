@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,8 +15,6 @@
  */
 package com.baomidou.mybatisplus.generator.config.querys;
 
-import com.baomidou.mybatisplus.annotation.DbType;
-
 /**
  * DB2 表数据查询
  *
@@ -25,22 +23,15 @@ import com.baomidou.mybatisplus.annotation.DbType;
  */
 public class DB2Query extends AbstractDbQuery {
 
-
-    @Override
-    public DbType dbType() {
-        return DbType.DB2;
-    }
-
-
     @Override
     public String tablesSql() {
-        return "SELECT * FROM SYSCAT.TABLES where tabschema=current schema";
+        return "SELECT * FROM SYSCAT.TABLES where tabschema=%s";
     }
 
 
     @Override
     public String tableFieldsSql() {
-        return "SELECT *  FROM syscat.columns WHERE tabschema=current schema AND tabname='%s'";
+        return "SELECT * FROM syscat.columns WHERE tabschema=%s AND tabname='%s'";
     }
 
 

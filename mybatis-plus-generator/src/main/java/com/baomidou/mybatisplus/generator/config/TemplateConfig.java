@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -48,4 +48,37 @@ public class TemplateConfig {
     public String getEntity(boolean kotlin) {
         return kotlin ? entityKt : entity;
     }
+    
+    /**
+     * 禁用模板
+     *
+     * @param templateTypes 模板类型
+     * @return this
+     * @since 3.3.2
+     */
+    public TemplateConfig disable(TemplateType... templateTypes) {
+        if (templateTypes != null && templateTypes.length > 0) {
+            for (TemplateType templateType : templateTypes) {
+                switch (templateType) {
+                    case XML:
+                        setXml(null);
+                        break;
+                    case ENTITY:
+                        setEntity(null).setEntityKt(null);
+                        break;
+                    case MAPPER:
+                        setMapper(null);
+                        break;
+                    case SERVICE:
+                        setService(null).setServiceImpl(null);
+                        break;
+                    case CONTROLLER:
+                        setController(null);
+                        break;
+                }
+            }
+        }
+        return this;
+    }
+    
 }

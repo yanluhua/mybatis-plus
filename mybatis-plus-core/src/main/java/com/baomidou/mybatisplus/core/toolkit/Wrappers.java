@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.baomidou.mybatisplus.core.toolkit;
 
 import com.baomidou.mybatisplus.core.conditions.ISqlSegment;
@@ -20,7 +35,7 @@ public final class Wrappers {
     /**
      * 空的 EmptyWrapper
      */
-    private static final QueryWrapper emptyWrapper = new EmptyWrapper<>();
+    private static final QueryWrapper<?> emptyWrapper = new EmptyWrapper<>();
 
     private Wrappers() {
         // ignore
@@ -69,6 +84,18 @@ public final class Wrappers {
     }
 
     /**
+     * 获取 LambdaQueryWrapper&lt;T&gt;
+     *
+     * @param entityClass 实体类class
+     * @param <T>         实体类泛型
+     * @return LambdaQueryWrapper&lt;T&gt;
+     * @since 3.3.1
+     */
+    public static <T> LambdaQueryWrapper<T> lambdaQuery(Class<T> entityClass) {
+        return new LambdaQueryWrapper<>(entityClass);
+    }
+
+    /**
      * 获取 UpdateWrapper&lt;T&gt;
      *
      * @param <T> 实体类泛型
@@ -111,6 +138,18 @@ public final class Wrappers {
     }
 
     /**
+     * 获取 LambdaUpdateWrapper&lt;T&gt;
+     *
+     * @param entityClass 实体类class
+     * @param <T>         实体类泛型
+     * @return LambdaUpdateWrapper&lt;T&gt;
+     * @since 3.3.1
+     */
+    public static <T> LambdaUpdateWrapper<T> lambdaUpdate(Class<T> entityClass) {
+        return new LambdaUpdateWrapper<>(entityClass);
+    }
+
+    /**
      * 获取 EmptyWrapper&lt;T&gt;
      *
      * @param <T> 任意泛型
@@ -137,8 +176,19 @@ public final class Wrappers {
             return null;
         }
 
+        @Override
         public EmptyWrapper<T> setEntity(T entity) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public QueryWrapper<T> setEntityClass(Class<T> entityClass) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Class<T> getEntityClass() {
+            return null;
         }
 
         @Override
@@ -171,11 +221,8 @@ public final class Wrappers {
             return true;
         }
 
-        protected void initEntityClass() {
-        }
-
-        protected Class<T> getCheckEntityClass() {
-            throw new UnsupportedOperationException();
+        @Override
+        protected void initNeed() {
         }
 
         @Override
@@ -186,12 +233,6 @@ public final class Wrappers {
         @Override
         protected EmptyWrapper<T> doIt(boolean condition, ISqlSegment... sqlSegments) {
             throw new UnsupportedOperationException();
-        }
-
-        @SuppressWarnings("EmptyMethod")
-        @Override
-        public String getParamAlias() {
-            return super.getParamAlias();
         }
 
         @Override
@@ -216,6 +257,11 @@ public final class Wrappers {
 
         @Override
         protected EmptyWrapper<T> instance() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
             throw new UnsupportedOperationException();
         }
     }

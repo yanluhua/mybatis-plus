@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -26,8 +26,9 @@ import net.sf.jsqlparser.statement.update.Update;
  * 攻击 SQL 阻断解析器
  *
  * @author hubin
- * @since 2018-07-17
+ * @since 2018-07-17 use {@link com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor}
  */
+@Deprecated
 public class BlockAttackSqlParser extends AbstractJsqlParser {
 
     @Override

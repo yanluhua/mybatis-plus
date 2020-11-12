@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -28,11 +28,15 @@ import com.baomidou.mybatisplus.annotation.DbType;
  */
 public interface IDbQuery {
 
-
     /**
      * 数据库类型
+     *
+     * @deprecated 3.3.1 {@link DataSourceConfig#setDbType(DbType)}
      */
-    DbType dbType();
+    @Deprecated
+    default DbType dbType() {
+        return null;
+    }
 
 
     /**
@@ -84,7 +88,7 @@ public interface IDbQuery {
 
 
     /**
-     * 判断主键是否为identity，目前仅对mysql进行检查
+     * 判断主键是否为identity
      *
      * @param results ResultSet
      * @return 主键是否为identity

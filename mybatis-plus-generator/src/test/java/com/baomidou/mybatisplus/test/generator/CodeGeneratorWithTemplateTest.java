@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2011-2019, hubin (jobob@qq.com).
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.baomidou.mybatisplus.test.generator;
 
 import com.baomidou.mybatisplus.annotation.DbType;
@@ -7,6 +22,7 @@ import com.baomidou.mybatisplus.generator.InjectionConfig;
 import com.baomidou.mybatisplus.generator.config.*;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.mysql.cj.jdbc.Driver;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -31,7 +47,7 @@ class CodeGeneratorWithTemplateTest {
     /**
      * 是否去掉生成实体的属性名前缀
      */
-    private String[] fieldPrefix = null;
+    private String[] fieldPrefix = new String[]{};
     /**
      * 生成的Service 接口类名是否以I开头
      * <p>默认是以I开头</p>
@@ -40,6 +56,7 @@ class CodeGeneratorWithTemplateTest {
     private boolean serviceClassNameStartWithI = true;
 
     @Test
+    @Disabled
     void generateCode() {
         String packageName = "com.baomidou.springboot";
         enableTableFieldAnnotation = false;

@@ -1,11 +1,28 @@
+/*
+ * Copyright (c) 2011-2019, hubin (jobob@qq.com).
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.baomidou.mybatisplus.test;
 
+import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
-import com.baomidou.mybatisplus.core.toolkit.TableInfoHelper;
+import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.test.base.entity.CommonData;
-import com.baomidou.mybatisplus.test.base.entity.CommonLogicData;
+import com.baomidou.mybatisplus.test.mysql.entity.CommonData;
+import com.baomidou.mybatisplus.test.mysql.entity.CommonLogicData;
+import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.reflection.DefaultReflectorFactory;
 import org.apache.ibatis.reflection.MetaClass;
 import org.junit.jupiter.api.Test;
@@ -14,7 +31,7 @@ class SampleTest {
 
     @Test
     void testTableInfoHelper2() {
-        TableInfo info = TableInfoHelper.initTableInfo(null, CommonLogicData.class);
+        TableInfo info = TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new MybatisConfiguration(), ""), CommonLogicData.class);
 //        System.out.println("----------- AllInsertSqlColumn -----------");
 //        System.out.println(info.getAllInsertSqlColumn());
 //        System.out.println("----------- AllInsertSqlProperty -----------");

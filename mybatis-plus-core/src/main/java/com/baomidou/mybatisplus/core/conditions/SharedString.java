@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,7 +15,11 @@
  */
 package com.baomidou.mybatisplus.core.conditions;
 
+import com.baomidou.mybatisplus.core.toolkit.StringPool;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 
@@ -26,6 +30,9 @@ import java.io.Serializable;
  * @since 2018-11-20
  */
 @Data
+@Accessors(chain = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class SharedString implements Serializable {
     private static final long serialVersionUID = -1536422416594422874L;
 
@@ -33,4 +40,29 @@ public class SharedString implements Serializable {
      * 共享的 string 值
      */
     private String stringValue;
+
+    /**
+     * SharedString 里是 ""
+     */
+    public static SharedString emptyString() {
+        return new SharedString(StringPool.EMPTY);
+    }
+
+    /**
+     * 置 empty
+     *
+     * @since 3.3.1
+     */
+    public void toEmpty() {
+        stringValue = StringPool.EMPTY;
+    }
+
+    /**
+     * 置 null
+     *
+     * @since 3.3.1
+     */
+    public void toNull() {
+        stringValue = null;
+    }
 }

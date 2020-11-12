@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -31,9 +31,21 @@ public class Delete extends AbstractMethod {
 
     @Override
     public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
-        SqlMethod sqlMethod = SqlMethod.DELETE;
-        String sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(), this.sqlWhereEntityWrapper(true, tableInfo));
-        SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, modelClass);
-        return this.addDeleteMappedStatement(mapperClass, sqlMethod.getMethod(), sqlSource);
+        String sql;
+        SqlMethod sqlMethod = SqlMethod.LOGIC_DELETE;
+        if (tableInfo.isWithLogicDelete()) {
+            sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(), sqlLogicSet(tableInfo),
+                sqlWhereEntityWrapper(true, tableInfo),
+                sqlComment());
+            SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, modelClass);
+            return addUpdateMappedStatement(mapperClass, modelClass, getMethod(sqlMethod), sqlSource);
+        } else {
+            sqlMethod = SqlMethod.DELETE;
+            sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(),
+                sqlWhereEntityWrapper(true, tableInfo),
+                sqlComment());
+            SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, modelClass);
+            return this.addDeleteMappedStatement(mapperClass, getMethod(sqlMethod), sqlSource);
+        }
     }
 }

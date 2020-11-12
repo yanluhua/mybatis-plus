@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -72,5 +72,17 @@ public class MergeSegments implements ISqlSegment {
             sqlSegment = normal.getSqlSegment() + groupBy.getSqlSegment() + having.getSqlSegment() + orderBy.getSqlSegment();
         }
         return sqlSegment;
+    }
+
+    /**
+     * 清理
+     *
+     * @since 3.3.1
+     */
+    public void clear() {
+        normal.clear();
+        groupBy.clear();
+        having.clear();
+        orderBy.clear();
     }
 }

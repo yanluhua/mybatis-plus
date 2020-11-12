@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,4 +21,6 @@ package com.baomidou.mybatisplus.extension.plugins.pagination.dialects;
  * @author hubin
  * @since 2018-08-21
  */
-public class DmDialect extends OracleDialect {}
+@Deprecated
+public class DmDialect extends OracleDialect {
+}

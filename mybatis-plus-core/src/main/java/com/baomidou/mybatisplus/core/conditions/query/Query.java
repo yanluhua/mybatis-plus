@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,10 +15,10 @@
  */
 package com.baomidou.mybatisplus.core.conditions.query;
 
+import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
+
 import java.io.Serializable;
 import java.util.function.Predicate;
-
-import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 
 /**
  * @author miemie
@@ -32,13 +32,16 @@ public interface Query<Children, T, R> extends Serializable {
      * @param columns 字段数组
      * @return children
      */
+    @SuppressWarnings("unchecked")
     Children select(R... columns);
 
     /**
      * ignore
      * <p>注意只有内部有 entity 才能使用该方法</p>
      */
-    Children select(Predicate<TableFieldInfo> predicate);
+    default Children select(Predicate<TableFieldInfo> predicate) {
+        return select(null, predicate);
+    }
 
     /**
      * 过滤查询的字段信息(主键除外!)

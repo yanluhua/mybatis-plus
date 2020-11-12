@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -20,7 +20,7 @@ import java.util.Map;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.baomidou.mybatisplus.test.h2.entity.persistent.H2User;
+import com.baomidou.mybatisplus.test.h2.entity.H2User;
 
 /**
  * Service层测试
@@ -44,7 +44,7 @@ public interface IH2UserService extends IService<H2User> {
 
     int selectCountWithParamInSelectItems(Map<String, Object> param);
 
-    List<Map> mySelectMaps();
+    List<Map<?, ?>> mySelectMaps();
 
     void testBatchTransactional();
 
@@ -53,4 +53,8 @@ public interface IH2UserService extends IService<H2User> {
     void testSaveOrUpdateBatchTransactional();
 
     void testSimpleAndBatchTransactional();
+
+    void testSaveBatchNoTransactional1();
+
+    void testSaveBatchNoTransactional2();
 }

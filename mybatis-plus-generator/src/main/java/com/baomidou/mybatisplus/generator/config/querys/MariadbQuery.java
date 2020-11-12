@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,8 +18,6 @@ package com.baomidou.mybatisplus.generator.config.querys;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.baomidou.mybatisplus.annotation.DbType;
-
 /**
  * MySql 表数据查询
  *
@@ -28,16 +26,9 @@ import com.baomidou.mybatisplus.annotation.DbType;
  */
 public class MariadbQuery extends AbstractDbQuery {
 
-
-    @Override
-    public DbType dbType() {
-        return DbType.MARIADB;
-    }
-
-
     @Override
     public String tablesSql() {
-        return "show table status";
+        return "show table status WHERE 1=1 ";
     }
 
 

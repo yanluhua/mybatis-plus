@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,12 +17,12 @@ package com.baomidou.mybatisplus.core;
 
 import org.apache.ibatis.builder.BaseBuilder;
 import org.apache.ibatis.builder.BuilderException;
+import org.apache.ibatis.builder.xml.XMLConfigBuilder;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.builder.xml.XMLMapperEntityResolver;
 import org.apache.ibatis.datasource.DataSourceFactory;
 import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.executor.loader.ProxyFactory;
-import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.io.VFS;
 import org.apache.ibatis.logging.Log;
@@ -43,23 +43,20 @@ import org.apache.ibatis.type.JdbcType;
 import javax.sql.DataSource;
 import java.io.InputStream;
 import java.io.Reader;
-import java.util.HashSet;
 import java.util.Properties;
-import java.util.Set;
 
 /**
- * Copy from XMLConfigBuilder in Mybatis and replace default Configuration class
- * by MybatisConfiguration class
+ * 从 {@link XMLConfigBuilder} copy 过来, 使用自己的 MybatisConfiguration 而不是 Configuration
  *
  * @author hubin
  * @since 2017-01-04
  */
 public class MybatisXMLConfigBuilder extends BaseBuilder {
 
-    private final XPathParser parser;
-    private final ReflectorFactory localReflectorFactory = new DefaultReflectorFactory();
     private boolean parsed;
+    private final XPathParser parser;
     private String environment;
+    private final ReflectorFactory localReflectorFactory = new DefaultReflectorFactory();
 
     public MybatisXMLConfigBuilder(Reader reader) {
         this(reader, null, null);
@@ -85,10 +82,8 @@ public class MybatisXMLConfigBuilder extends BaseBuilder {
         this(new XPathParser(inputStream, true, props, new XMLMapperEntityResolver()), environment, props);
     }
 
-    /**
-     * 使用自己的 MybatisConfiguration
-     */
     private MybatisXMLConfigBuilder(XPathParser parser, String environment, Properties props) {
+        // TODO 使用 MybatisConfiguration 而不是 Configuration
         super(new MybatisConfiguration());
         ErrorContext.instance().resource("SQL Mapper Configuration");
         this.configuration.setVariables(props);
@@ -106,14 +101,9 @@ public class MybatisXMLConfigBuilder extends BaseBuilder {
         return configuration;
     }
 
-    @Override
-    public MybatisConfiguration getConfiguration() {
-        return (MybatisConfiguration) this.configuration;
-    }
-
     private void parseConfiguration(XNode root) {
         try {
-            //issue #117 read properties first
+            // issue #117 read properties first
             propertiesElement(root.evalNode("properties"));
             Properties settings = settingsAsProperties(root.evalNode("settings"));
             loadCustomVfs(settings);
@@ -197,7 +187,7 @@ public class MybatisXMLConfigBuilder extends BaseBuilder {
             for (XNode child : parent.getChildren()) {
                 String interceptor = child.getStringAttribute("interceptor");
                 Properties properties = child.getChildrenAsProperties();
-                Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).newInstance();
+                Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).getDeclaredConstructor().newInstance();
                 interceptorInstance.setProperties(properties);
                 configuration.addInterceptor(interceptorInstance);
             }
@@ -208,7 +198,7 @@ public class MybatisXMLConfigBuilder extends BaseBuilder {
         if (context != null) {
             String type = context.getStringAttribute("type");
             Properties properties = context.getChildrenAsProperties();
-            ObjectFactory factory = (ObjectFactory) resolveClass(type).newInstance();
+            ObjectFactory factory = (ObjectFactory) resolveClass(type).getDeclaredConstructor().newInstance();
             factory.setProperties(properties);
             configuration.setObjectFactory(factory);
         }
@@ -217,7 +207,7 @@ public class MybatisXMLConfigBuilder extends BaseBuilder {
     private void objectWrapperFactoryElement(XNode context) throws Exception {
         if (context != null) {
             String type = context.getStringAttribute("type");
-            ObjectWrapperFactory factory = (ObjectWrapperFactory) resolveClass(type).newInstance();
+            ObjectWrapperFactory factory = (ObjectWrapperFactory) resolveClass(type).getDeclaredConstructor().newInstance();
             configuration.setObjectWrapperFactory(factory);
         }
     }
@@ -225,7 +215,7 @@ public class MybatisXMLConfigBuilder extends BaseBuilder {
     private void reflectorFactoryElement(XNode context) throws Exception {
         if (context != null) {
             String type = context.getStringAttribute("type");
-            ReflectorFactory factory = (ReflectorFactory) resolveClass(type).newInstance();
+            ReflectorFactory factory = (ReflectorFactory) resolveClass(type).getDeclaredConstructor().newInstance();
             configuration.setReflectorFactory(factory);
         }
     }
@@ -265,7 +255,8 @@ public class MybatisXMLConfigBuilder extends BaseBuilder {
         configuration.setDefaultExecutorType(ExecutorType.valueOf(props.getProperty("defaultExecutorType", "SIMPLE")));
         configuration.setDefaultStatementTimeout(integerValueOf(props.getProperty("defaultStatementTimeout"), null));
         configuration.setDefaultFetchSize(integerValueOf(props.getProperty("defaultFetchSize"), null));
-        //todo 统一mapUnderscoreToCamelCase,默认是false
+        configuration.setDefaultResultSetType(resolveResultSetType(props.getProperty("defaultResultSetType")));
+        // TODO 统一 mapUnderscoreToCamelCase 属性默认值为 true
         configuration.setMapUnderscoreToCamelCase(booleanValueOf(props.getProperty("mapUnderscoreToCamelCase"), true));
         configuration.setSafeRowBoundsEnabled(booleanValueOf(props.getProperty("safeRowBoundsEnabled"), false));
         configuration.setLocalCacheScope(LocalCacheScope.valueOf(props.getProperty("localCacheScope", "SESSION")));
@@ -279,6 +270,10 @@ public class MybatisXMLConfigBuilder extends BaseBuilder {
         configuration.setReturnInstanceForEmptyRow(booleanValueOf(props.getProperty("returnInstanceForEmptyRow"), false));
         configuration.setLogPrefix(props.getProperty("logPrefix"));
         configuration.setConfigurationFactory(resolveClass(props.getProperty("configurationFactory")));
+        configuration.setShrinkWhitespacesInSql(booleanValueOf(props.getProperty("shrinkWhitespacesInSql"), false));
+        // TODO MybatisConfiguration 独有的属性
+        ((MybatisConfiguration) configuration).setUseDeprecatedExecutor(booleanValueOf(props.getProperty("useNewExecutor"), true));
+        ((MybatisConfiguration) configuration).setUseGeneratedShortKey(booleanValueOf(props.getProperty("useGeneratedShortKey"), true));
     }
 
     private void environmentsElement(XNode context) throws Exception {
@@ -310,7 +305,7 @@ public class MybatisXMLConfigBuilder extends BaseBuilder {
                 type = "DB_VENDOR";
             }
             Properties properties = context.getChildrenAsProperties();
-            databaseIdProvider = (DatabaseIdProvider) resolveClass(type).newInstance();
+            databaseIdProvider = (DatabaseIdProvider) resolveClass(type).getDeclaredConstructor().newInstance();
             databaseIdProvider.setProperties(properties);
         }
         Environment environment = configuration.getEnvironment();
@@ -324,7 +319,7 @@ public class MybatisXMLConfigBuilder extends BaseBuilder {
         if (context != null) {
             String type = context.getStringAttribute("type");
             Properties props = context.getChildrenAsProperties();
-            TransactionFactory factory = (TransactionFactory) resolveClass(type).newInstance();
+            TransactionFactory factory = (TransactionFactory) resolveClass(type).getDeclaredConstructor().newInstance();
             factory.setProperties(props);
             return factory;
         }
@@ -335,7 +330,7 @@ public class MybatisXMLConfigBuilder extends BaseBuilder {
         if (context != null) {
             String type = context.getStringAttribute("type");
             Properties props = context.getChildrenAsProperties();
-            DataSourceFactory factory = (DataSourceFactory) resolveClass(type).newInstance();
+            DataSourceFactory factory = (DataSourceFactory) resolveClass(type).getDeclaredConstructor().newInstance();
             factory.setProperties(props);
             return factory;
         }
@@ -370,61 +365,31 @@ public class MybatisXMLConfigBuilder extends BaseBuilder {
     }
 
     private void mapperElement(XNode parent) throws Exception {
-        /*
-         * 定义集合 用来分类放置mybatis的Mapper与XML 按顺序依次遍历
-         */
         if (parent != null) {
-            //指定在classpath中的mapper文件
-            Set<String> resources = new HashSet<>();
-            //指向一个mapper接口
-            Set<Class<?>> mapperClasses = new HashSet<>();
-            setResource(parent, resources, mapperClasses);
-            // 依次遍历 首先 resource 然后 mapper
-            for (String resource : resources) {
-                ErrorContext.instance().resource(resource);
-                InputStream inputStream = Resources.getResourceAsStream(resource);
-                //TODO
-                XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource,
-                    configuration.getSqlFragments());
-                mapperParser.parse();
-            }
-            for (Class<?> mapper : mapperClasses) {
-                //TODO
-                configuration.addMapper(mapper);
-            }
-        }
-    }
-
-    /**
-     * 查找mybatis配置文件填充至Set集合
-     *
-     * @param parent    节点
-     * @param resources
-     * @param mapper
-     * @throws ClassNotFoundException
-     */
-    private void setResource(XNode parent, Set<String> resources, Set<Class<?>> mapper) throws ClassNotFoundException {
-        for (XNode child : parent.getChildren()) {
-            if ("package".equals(child.getName())) {
-                String mapperPackage = child.getStringAttribute("name");
-                ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
-                resolverUtil.find(new ResolverUtil.IsA(Object.class), mapperPackage);
-                Set<Class<? extends Class<?>>> mapperSet = resolverUtil.getClasses();
-                mapper.addAll(mapperSet);
-            } else {
-                String resource = child.getStringAttribute("resource");
-                String url = child.getStringAttribute("url");
-                String mapperClass = child.getStringAttribute("class");
-                if (resource != null && url == null && mapperClass == null) {
-                    resources.add(resource);
-                } else if (resource == null && url != null && mapperClass == null) {
-                    resources.add(url);
-                } else if (resource == null && url == null && mapperClass != null) {
-                    Class<?> mapperInterface = Resources.classForName(mapperClass);
-                    mapper.add(mapperInterface);
+            for (XNode child : parent.getChildren()) {
+                if ("package".equals(child.getName())) {
+                    String mapperPackage = child.getStringAttribute("name");
+                    configuration.addMappers(mapperPackage);
                 } else {
-                    throw new BuilderException(
-                        "A mapper element may only specify a url, resource or class, but not more than one.");
+                    String resource = child.getStringAttribute("resource");
+                    String url = child.getStringAttribute("url");
+                    String mapperClass = child.getStringAttribute("class");
+                    if (resource != null && url == null && mapperClass == null) {
+                        ErrorContext.instance().resource(resource);
+                        InputStream inputStream = Resources.getResourceAsStream(resource);
+                        XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
+                        mapperParser.parse();
+                    } else if (resource == null && url != null && mapperClass == null) {
+                        ErrorContext.instance().resource(url);
+                        InputStream inputStream = Resources.getUrlAsStream(url);
+                        XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
+                        mapperParser.parse();
+                    } else if (resource == null && url == null && mapperClass != null) {
+                        Class<?> mapperInterface = Resources.classForName(mapperClass);
+                        configuration.addMapper(mapperInterface);
+                    } else {
+                        throw new BuilderException("A mapper element may only specify a url, resource or class, but not more than one.");
+                    }
                 }
             }
         }
@@ -435,8 +400,9 @@ public class MybatisXMLConfigBuilder extends BaseBuilder {
             throw new BuilderException("No environment specified.");
         } else if (id == null) {
             throw new BuilderException("Environment requires an id attribute.");
-        } else {
-            return environment.equals(id);
+        } else if (environment.equals(id)) {
+            return true;
         }
+        return false;
     }
 }

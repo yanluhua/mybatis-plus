@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -35,8 +35,8 @@ public class SelectByMap extends AbstractMethod {
     public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
         SqlMethod sqlMethod = SqlMethod.SELECT_BY_MAP;
         String sql = String.format(sqlMethod.getSql(), sqlSelectColumns(tableInfo, false),
-            tableInfo.getTableName(), this.sqlWhereByMap(tableInfo));
+            tableInfo.getTableName(), sqlWhereByMap(tableInfo));
         SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, Map.class);
-        return this.addSelectMappedStatement(mapperClass, sqlMethod.getMethod(), sqlSource, modelClass, tableInfo);
+        return this.addSelectMappedStatementForTable(mapperClass, getMethod(sqlMethod), sqlSource, tableInfo);
     }
 }

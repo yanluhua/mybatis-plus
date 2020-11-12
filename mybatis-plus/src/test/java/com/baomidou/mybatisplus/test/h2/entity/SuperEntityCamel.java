@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -28,7 +28,12 @@ import com.baomidou.mybatisplus.annotation.TableId;
  */
 public class SuperEntityCamel extends SuSuperEntityCamel implements Serializable {
 
-    /* 主键ID 注解，value 字段名，type 用户输入ID */
+    /**
+	 * serialVersionUID
+	 */
+	private static final long serialVersionUID = -531147777357149891L;
+	
+	/* 主键ID 注解，value 字段名，type 用户输入ID */
     @TableId(value = "testId")
     private Long id;
 

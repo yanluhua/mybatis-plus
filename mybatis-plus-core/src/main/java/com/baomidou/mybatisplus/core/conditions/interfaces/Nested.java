@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,11 +16,12 @@
 package com.baomidou.mybatisplus.core.conditions.interfaces;
 
 import java.io.Serializable;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 /**
  * 查询条件封装
  * <p>嵌套</p>
+ * <li>泛型 Param 是具体需要运行函数的类(也是 wrapper 的子类)</li>
  *
  * @author hubin miemie HCL
  * @since 2017-05-26
@@ -30,8 +31,8 @@ public interface Nested<Param, Children> extends Serializable {
     /**
      * ignore
      */
-    default Children and(Function<Param, Param> func) {
-        return and(true, func);
+    default Children and(Consumer<Param> consumer) {
+        return and(true, consumer);
     }
 
     /**
@@ -41,16 +42,16 @@ public interface Nested<Param, Children> extends Serializable {
      * </p>
      *
      * @param condition 执行条件
-     * @param func      函数
+     * @param consumer  消费函数
      * @return children
      */
-    Children and(boolean condition, Function<Param, Param> func);
+    Children and(boolean condition, Consumer<Param> consumer);
 
     /**
      * ignore
      */
-    default Children or(Function<Param, Param> func) {
-        return or(true, func);
+    default Children or(Consumer<Param> consumer) {
+        return or(true, consumer);
     }
 
     /**
@@ -60,16 +61,16 @@ public interface Nested<Param, Children> extends Serializable {
      * </p>
      *
      * @param condition 执行条件
-     * @param func      函数
+     * @param consumer  消费函数
      * @return children
      */
-    Children or(boolean condition, Function<Param, Param> func);
+    Children or(boolean condition, Consumer<Param> consumer);
 
     /**
      * ignore
      */
-    default Children nested(Function<Param, Param> func) {
-        return nested(true, func);
+    default Children nested(Consumer<Param> consumer) {
+        return nested(true, consumer);
     }
 
     /**
@@ -79,8 +80,27 @@ public interface Nested<Param, Children> extends Serializable {
      * </p>
      *
      * @param condition 执行条件
-     * @param func      函数
+     * @param consumer  消费函数
      * @return children
      */
-    Children nested(boolean condition, Function<Param, Param> func);
+    Children nested(boolean condition, Consumer<Param> consumer);
+
+    /**
+     * ignore
+     */
+    default Children not(Consumer<Param> consumer) {
+        return not(true, consumer);
+    }
+
+    /**
+     * not嵌套
+     * <p>
+     * 例: not(i -&gt; i.eq("name", "李白").ne("status", "活着"))
+     * </p>
+     *
+     * @param condition 执行条件
+     * @param consumer  消费函数
+     * @return children
+     */
+    Children not(boolean condition, Consumer<Param> consumer);
 }

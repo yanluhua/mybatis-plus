@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2016, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,11 +16,10 @@
 package com.baomidou.mybatisplus.generator.config;
 
 
-import java.io.File;
-
-import com.baomidou.mybatisplus.extension.toolkit.PackageHelper;
 import com.baomidou.mybatisplus.generator.config.builder.ConfigBuilder;
 import com.baomidou.mybatisplus.generator.config.rules.FileType;
+
+import java.io.File;
 
 /**
  * 文件覆盖接口
@@ -49,7 +48,7 @@ public interface IFileCreate {
         File file = new File(filePath);
         boolean exist = file.exists();
         if (!exist) {
-            PackageHelper.mkDir(file.getParentFile());
+            file.getParentFile().mkdir();
         }
     }
 }

@@ -10,7 +10,9 @@ import io.swagger.annotations.ApiModelProperty;
 <#if entityLombokModel>
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+    <#if chainModel>
 import lombok.experimental.Accessors;
+    </#if>
 </#if>
 
 /**
@@ -28,7 +30,9 @@ import lombok.experimental.Accessors;
     <#else>
 @EqualsAndHashCode(callSuper = false)
     </#if>
+    <#if chainModel>
 @Accessors(chain = true)
+    </#if>
 </#if>
 <#if table.convert>
 @TableName("${table.name}")
@@ -44,7 +48,9 @@ public class ${entity} extends Model<${entity}> {
 public class ${entity} implements Serializable {
 </#if>
 
+<#if entitySerialVersionUID>
     private static final long serialVersionUID = 1L;
+</#if>
 <#-- ----------  BEGIN 字段循环遍历  ---------->
 <#list table.fields as field>
     <#if field.keyFlag>
@@ -52,39 +58,39 @@ public class ${entity} implements Serializable {
     </#if>
 
     <#if field.comment!?length gt 0>
-    <#if swagger2>
+        <#if swagger2>
     @ApiModelProperty(value = "${field.comment}")
-    <#else>
+        <#else>
     /**
      * ${field.comment}
      */
-    </#if>
+        </#if>
     </#if>
     <#if field.keyFlag>
-    <#-- 主键 -->
+        <#-- 主键 -->
         <#if field.keyIdentityFlag>
-    @TableId(value = "${field.name}", type = IdType.AUTO)
+    @TableId(value = "${field.annotationColumnName}", type = IdType.AUTO)
         <#elseif idType??>
-    @TableId(value = "${field.name}", type = IdType.${idType})
+    @TableId(value = "${field.annotationColumnName}", type = IdType.${idType})
         <#elseif field.convert>
-    @TableId("${field.name}")
+    @TableId("${field.annotationColumnName}")
         </#if>
-    <#-- 普通字段 -->
+        <#-- 普通字段 -->
     <#elseif field.fill??>
     <#-- -----   存在字段填充设置   ----->
         <#if field.convert>
-    @TableField(value = "${field.name}", fill = FieldFill.${field.fill})
+    @TableField(value = "${field.annotationColumnName}", fill = FieldFill.${field.fill})
         <#else>
     @TableField(fill = FieldFill.${field.fill})
         </#if>
     <#elseif field.convert>
-    @TableField("${field.name}")
+    @TableField("${field.annotationColumnName}")
     </#if>
-<#-- 乐观锁注解 -->
+    <#-- 乐观锁注解 -->
     <#if (versionFieldName!"") == field.name>
     @Version
     </#if>
-<#-- 逻辑删除注解 -->
+    <#-- 逻辑删除注解 -->
     <#if (logicDeleteFieldName!"") == field.name>
     @TableLogic
     </#if>
@@ -103,13 +109,13 @@ public class ${entity} implements Serializable {
         return ${field.propertyName};
     }
 
-        <#if entityBuilderModel>
+    <#if chainModel>
     public ${entity} set${field.capitalName}(${field.propertyType} ${field.propertyName}) {
-        <#else>
+    <#else>
     public void set${field.capitalName}(${field.propertyType} ${field.propertyName}) {
-        </#if>
+    </#if>
         this.${field.propertyName} = ${field.propertyName};
-        <#if entityBuilderModel>
+        <#if chainModel>
         return this;
         </#if>
     }
@@ -139,9 +145,9 @@ public class ${entity} implements Serializable {
         return "${entity}{" +
     <#list table.fields as field>
         <#if field_index==0>
-        "${field.propertyName}=" + ${field.propertyName} +
+            "${field.propertyName}=" + ${field.propertyName} +
         <#else>
-        ", ${field.propertyName}=" + ${field.propertyName} +
+            ", ${field.propertyName}=" + ${field.propertyName} +
         </#if>
     </#list>
         "}";

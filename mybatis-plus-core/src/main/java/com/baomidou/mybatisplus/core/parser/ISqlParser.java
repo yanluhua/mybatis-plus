@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -34,4 +34,17 @@ public interface ISqlParser {
      */
     SqlInfo parser(MetaObject metaObject, String sql);
 
+    /**
+     * <p>
+     * 是否执行 SQL 解析 parser 方法
+     * </p>
+     *
+     * @param metaObject 元对象
+     * @param sql        SQL 语句
+     * @return SQL 信息
+     */
+    default boolean doFilter(final MetaObject metaObject, final String sql) {
+        // 默认 true 执行 SQL 解析, 可重写实现控制逻辑
+        return true;
+    }
 }

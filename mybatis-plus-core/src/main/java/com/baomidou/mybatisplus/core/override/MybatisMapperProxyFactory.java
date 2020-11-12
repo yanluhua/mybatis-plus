@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,6 +15,8 @@
  */
 package com.baomidou.mybatisplus.core.override;
 
+import lombok.Getter;
+import org.apache.ibatis.binding.MapperProxyFactory;
 import org.apache.ibatis.session.SqlSession;
 
 import java.lang.reflect.Method;
@@ -23,27 +25,21 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 替换掉引用
- * <p>重写类： org.apache.ibatis.binding.MapperProxyFactory</p>
+ * <p>从 {@link MapperProxyFactory} copy 过来 </p>
+ * <li> 使用 MybatisMapperMethod </li>
  *
  * @author miemie
  * @since 2018-06-09
  */
 public class MybatisMapperProxyFactory<T> {
-
+    
+    @Getter
     private final Class<T> mapperInterface;
-    private final Map<Method, MybatisMapperMethod> methodCache = new ConcurrentHashMap<>();
-
+    @Getter
+    private final Map<Method, MybatisMapperProxy.MapperMethodInvoker> methodCache = new ConcurrentHashMap<>();
+    
     public MybatisMapperProxyFactory(Class<T> mapperInterface) {
         this.mapperInterface = mapperInterface;
-    }
-
-    public Class<T> getMapperInterface() {
-        return mapperInterface;
-    }
-
-    public Map<Method, MybatisMapperMethod> getMethodCache() {
-        return methodCache;
     }
 
     @SuppressWarnings("unchecked")

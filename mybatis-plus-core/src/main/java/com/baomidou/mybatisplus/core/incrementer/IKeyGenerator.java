@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2016, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,6 +16,8 @@
 package com.baomidou.mybatisplus.core.incrementer;
 
 
+import com.baomidou.mybatisplus.annotation.KeySequence;
+
 /**
  * 表主键生成器接口 (sql)
  *
@@ -27,7 +29,7 @@ public interface IKeyGenerator {
     /**
      * 执行 key 生成 SQL
      *
-     * @param incrementerName 序列名称
+     * @param incrementerName 序列名称(对应类上注解 {@link KeySequence#value()} 的值)
      * @return sql
      */
     String executeSql(String incrementerName);

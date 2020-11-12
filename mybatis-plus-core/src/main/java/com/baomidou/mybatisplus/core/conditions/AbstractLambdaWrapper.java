@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,15 +15,16 @@
  */
 package com.baomidou.mybatisplus.core.conditions;
 
-import com.baomidou.mybatisplus.core.toolkit.*;
+import com.baomidou.mybatisplus.core.toolkit.Assert;
+import com.baomidou.mybatisplus.core.toolkit.LambdaUtils;
+import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.core.toolkit.support.ColumnCache;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.core.toolkit.support.SerializedLambda;
+import org.apache.ibatis.reflection.property.PropertyNamer;
 
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.util.stream.Collectors.joining;
 
@@ -41,20 +42,13 @@ public abstract class AbstractLambdaWrapper<T, Children extends AbstractLambdaWr
     private Map<String, ColumnCache> columnMap = null;
     private boolean initColumnMap = false;
 
-    @Override
-    protected void initEntityClass() {
-        super.initEntityClass();
-        if (entityClass != null) {
-            columnMap = LambdaUtils.getColumnMap(entityClass.getName());
-            initColumnMap = true;
-        }
-    }
-
+    @SuppressWarnings("unchecked")
     @Override
     protected String columnsToString(SFunction<T, ?>... columns) {
         return columnsToString(true, columns);
     }
 
+    @SuppressWarnings("unchecked")
     protected String columnsToString(boolean onlyColumn, SFunction<T, ?>... columns) {
         return Arrays.stream(columns).map(i -> columnToString(i, onlyColumn)).collect(joining(StringPool.COMMA));
     }
@@ -68,17 +62,42 @@ public abstract class AbstractLambdaWrapper<T, Children extends AbstractLambdaWr
         return getColumn(LambdaUtils.resolve(column), onlyColumn);
     }
 
+    /**
+     * 获取 SerializedLambda 对应的列信息，从 lambda 表达式中推测实体类
+     * <p>
+     * 如果获取不到列信息，那么本次条件组装将会失败
+     *
+     * @param lambda     lambda 表达式
+     * @param onlyColumn 如果是，结果: "name", 如果否： "name" as "name"
+     * @return 列
+     * @throws com.baomidou.mybatisplus.core.exceptions.MybatisPlusException 获取不到列信息时抛出异常
+     * @see SerializedLambda#getImplClass()
+     * @see SerializedLambda#getImplMethodName()
+     */
     private String getColumn(SerializedLambda lambda, boolean onlyColumn) {
-        String fieldName = StringUtils.resolveFieldName(lambda.getImplMethodName());
-        if (!initColumnMap || !columnMap.containsKey(fieldName.toUpperCase(Locale.ENGLISH))) {
-            String entityClassName = lambda.getImplClassName();
-            columnMap = LambdaUtils.getColumnMap(entityClassName);
-            Assert.notEmpty(columnMap, "cannot find column's cache for \"%s\", so you cannot used \"%s\"!",
-                entityClassName, typedThis.getClass());
+        Class<?> aClass = lambda.getInstantiatedType();
+        tryInitCache(aClass);
+        String fieldName = PropertyNamer.methodToProperty(lambda.getImplMethodName());
+        ColumnCache columnCache = getColumnCache(fieldName, aClass);
+        return onlyColumn ? columnCache.getColumn() : columnCache.getColumnSelect();
+    }
+
+    private void tryInitCache(Class<?> lambdaClass) {
+        if (!initColumnMap) {
+            final Class<T> entityClass = getEntityClass();
+            if (entityClass != null) {
+                lambdaClass = entityClass;
+            }
+            columnMap = LambdaUtils.getColumnMap(lambdaClass);
             initColumnMap = true;
         }
-        return Optional.ofNullable(columnMap.get(fieldName.toUpperCase(Locale.ENGLISH)))
-            .map(onlyColumn ? ColumnCache::getColumn : ColumnCache::getColumnSelect)
-            .orElseThrow(() -> ExceptionUtils.mpe("your property named \"%s\" cannot find the corresponding database column name!", fieldName));
+        Assert.notNull(columnMap, "can not find lambda cache for this entity [%s]", lambdaClass.getName());
+    }
+
+    private ColumnCache getColumnCache(String fieldName, Class<?> lambdaClass) {
+        ColumnCache columnCache = columnMap.get(LambdaUtils.formatKey(fieldName));
+        Assert.notNull(columnCache, "can not find lambda cache for this property [%s] of entity [%s]",
+            fieldName, lambdaClass.getName());
+        return columnCache;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,19 +15,20 @@
  */
 package com.baomidou.mybatisplus.extension.toolkit;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.baomidou.mybatisplus.core.assist.ISqlRunner;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.core.toolkit.GlobalConfigUtils;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.baomidou.mybatisplus.core.assist.ISqlRunner;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.GlobalConfigUtils;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import java.util.List;
+import java.util.Map;
 
 /**
  * SqlRunner 执行 SQL
@@ -37,6 +38,7 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
  */
 public class SqlRunner implements ISqlRunner {
 
+    private final Log log = LogFactory.getLog(SqlRunner.class);
     // 单例Query
     public static final SqlRunner DEFAULT = new SqlRunner();
     // 默认FACTORY
@@ -82,7 +84,7 @@ public class SqlRunner implements ISqlRunner {
         SqlSession sqlSession = sqlSession();
         try {
             return SqlHelper.retBool(sqlSession.insert(INSERT, sqlMap(sql, args)));
-        }finally {
+        } finally {
             closeSqlSession(sqlSession);
         }
     }
@@ -93,7 +95,7 @@ public class SqlRunner implements ISqlRunner {
         SqlSession sqlSession = sqlSession();
         try {
             return SqlHelper.retBool(sqlSession.delete(DELETE, sqlMap(sql, args)));
-        }finally {
+        } finally {
             closeSqlSession(sqlSession);
         }
     }
@@ -106,7 +108,22 @@ public class SqlRunner implements ISqlRunner {
      * @return ignore
      */
     private Map<String, String> sqlMap(String sql, Object... args) {
-        Map<String, String> sqlMap = new HashMap<>();
+        Map<String, String> sqlMap = CollectionUtils.newHashMapWithExpectedSize(1);
+        sqlMap.put(SQL, StringUtils.sqlArgsFill(sql, args));
+        return sqlMap;
+    }
+
+    /**
+     * 获取sqlMap参数
+     *
+     * @param sql  指定参数的格式: {0}, {1}
+     * @param page 分页模型
+     * @param args 仅支持String
+     * @return ignore
+     */
+    private Map<String, Object> sqlMap(String sql, IPage page, Object... args) {
+        Map<String, Object> sqlMap = CollectionUtils.newHashMapWithExpectedSize(2);
+        sqlMap.put(PAGE, page);
         sqlMap.put(SQL, StringUtils.sqlArgsFill(sql, args));
         return sqlMap;
     }
@@ -117,7 +134,7 @@ public class SqlRunner implements ISqlRunner {
         SqlSession sqlSession = sqlSession();
         try {
             return SqlHelper.retBool(sqlSession.update(UPDATE, sqlMap(sql, args)));
-        }finally {
+        } finally {
             closeSqlSession(sqlSession);
         }
     }
@@ -134,8 +151,8 @@ public class SqlRunner implements ISqlRunner {
     public List<Map<String, Object>> selectList(String sql, Object... args) {
         SqlSession sqlSession = sqlSession();
         try {
-            return sqlSession().selectList(SELECT_LIST, sqlMap(sql, args));
-        }finally {
+            return sqlSession.selectList(SELECT_LIST, sqlMap(sql, args));
+        } finally {
             closeSqlSession(sqlSession);
         }
     }
@@ -153,7 +170,7 @@ public class SqlRunner implements ISqlRunner {
         SqlSession sqlSession = sqlSession();
         try {
             return sqlSession.selectList(SELECT_OBJS, sqlMap(sql, args));
-        }finally {
+        } finally {
             closeSqlSession(sqlSession);
         }
     }
@@ -168,7 +185,7 @@ public class SqlRunner implements ISqlRunner {
      */
     @Override
     public Object selectObj(String sql, Object... args) {
-        return SqlHelper.getObject(selectObjs(sql, args));
+        return SqlHelper.getObject(log, selectObjs(sql, args));
     }
 
     @Override
@@ -176,24 +193,22 @@ public class SqlRunner implements ISqlRunner {
         SqlSession sqlSession = sqlSession();
         try {
             return SqlHelper.retCount(sqlSession.<Integer>selectOne(COUNT, sqlMap(sql, args)));
-        }finally {
+        } finally {
             closeSqlSession(sqlSession);
         }
     }
 
     @Override
     public Map<String, Object> selectOne(String sql, Object... args) {
-        return SqlHelper.getObject(selectList(sql, args));
+        return SqlHelper.getObject(log, selectList(sql, args));
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public IPage<Map<String, Object>> selectPage(IPage page, String sql, Object... args) {
+    public <E extends IPage<Map<String, Object>>> E selectPage(E page, String sql, Object... args) {
         if (null == page) {
             return null;
         }
-        // TODO 待完成
-      //  page.setRecords(sqlSession().selectList(SELECT_LIST, sqlMap(sql, args), page));
+        page.setRecords(sqlSession().selectList(SELECT_LIST, sqlMap(sql, page, args)));
         return page;
     }
 
@@ -206,16 +221,16 @@ public class SqlRunner implements ISqlRunner {
 
     /**
      * 释放sqlSession
+     *
      * @param sqlSession session
      */
-    private void closeSqlSession(SqlSession sqlSession){
+    private void closeSqlSession(SqlSession sqlSession) {
         SqlSessionFactory sqlSessionFactory;
-        if(clazz!=null){
+        if (clazz != null) {
             sqlSessionFactory = GlobalConfigUtils.currentSessionFactory(clazz);
-        }else {
+        } else {
             sqlSessionFactory = DEFAULT.sqlSessionFactory;
         }
-        SqlSessionUtils.closeSqlSession(sqlSession,sqlSessionFactory);
+        SqlSessionUtils.closeSqlSession(sqlSession, sqlSessionFactory);
     }
-
 }

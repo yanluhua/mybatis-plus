@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -28,7 +28,12 @@ public class MySqlDialect implements IDialect {
 
     @Override
     public DialectModel buildPaginationSql(String originalSql, long offset, long limit) {
-        String sql = originalSql + " LIMIT " + FIRST_MARK + StringPool.COMMA + SECOND_MARK;
-        return new DialectModel(sql, offset, limit).setConsumerChain();
+        StringBuilder sql = new StringBuilder(originalSql).append(" LIMIT ").append(FIRST_MARK);
+        if (offset != 0L) {
+            sql.append(StringPool.COMMA).append(SECOND_MARK);
+            return new DialectModel(sql.toString(), offset, limit).setConsumerChain();
+        } else {
+            return new DialectModel(sql.toString(), limit).setConsumer(true);
+        }
     }
 }

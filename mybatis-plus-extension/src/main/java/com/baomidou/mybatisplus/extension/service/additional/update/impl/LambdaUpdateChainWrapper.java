@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2016, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,52 +15,19 @@
  */
 package com.baomidou.mybatisplus.extension.service.additional.update.impl;
 
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.Update;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.baomidou.mybatisplus.core.toolkit.ExceptionUtils;
-import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
-import com.baomidou.mybatisplus.extension.service.additional.AbstractChainWrapper;
-import com.baomidou.mybatisplus.extension.service.additional.update.ChainUpdate;
 
 /**
  * Lambda Update Chain Wrapper
  *
  * @author miemie
  * @since 2018-12-19
+ * @deprecated 3.3.0
  */
-@SuppressWarnings("serial")
-public class LambdaUpdateChainWrapper<T> extends AbstractChainWrapper<T, SFunction<T, ?>, LambdaUpdateChainWrapper<T>, LambdaUpdateWrapper<T>>
-    implements ChainUpdate<T>, Update<LambdaUpdateChainWrapper<T>, SFunction<T, ?>> {
-
-    private BaseMapper<T> baseMapper;
+@Deprecated
+public class LambdaUpdateChainWrapper<T> extends com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper<T> {
 
     public LambdaUpdateChainWrapper(BaseMapper<T> baseMapper) {
-        super();
-        this.baseMapper = baseMapper;
-        super.wrapperChildren = new LambdaUpdateWrapper<>();
+        super(baseMapper);
     }
-
-    @Override
-    public LambdaUpdateChainWrapper<T> set(boolean condition, SFunction<T, ?> column, Object val) {
-        wrapperChildren.set(condition, column, val);
-        return typedThis;
-    }
-
-    @Override
-    public LambdaUpdateChainWrapper<T> setSql(boolean condition, String sql) {
-        wrapperChildren.setSql(condition, sql);
-        return typedThis;
-    }
-
-    @Override
-    public String getSqlSet() {
-        throw ExceptionUtils.mpe("can not use this method for \"%s\"", "getSqlSet");
-    }
-
-    @Override
-    public BaseMapper<T> getBaseMapper() {
-        return baseMapper;
-    }
-
 }

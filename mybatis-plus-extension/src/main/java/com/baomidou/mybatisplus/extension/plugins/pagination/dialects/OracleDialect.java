@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,6 +19,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.DialectModel;
 
 /**
  * ORACLE 数据库分页语句组装实现
+ * 通用分页版本
  *
  * @author hubin
  * @since 2016-01-23

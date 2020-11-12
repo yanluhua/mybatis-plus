@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2016, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,51 +15,19 @@
  */
 package com.baomidou.mybatisplus.extension.service.additional.update.impl;
 
-import com.baomidou.mybatisplus.core.conditions.update.Update;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.baomidou.mybatisplus.core.toolkit.ExceptionUtils;
-import com.baomidou.mybatisplus.extension.service.additional.AbstractChainWrapper;
-import com.baomidou.mybatisplus.extension.service.additional.update.ChainUpdate;
 
 /**
  * Update Chain Wrapper
  *
  * @author miemie
  * @since 2018-12-19
+ * @deprecated 3.3.0
  */
-@SuppressWarnings("serial")
-public class UpdateChainWrapper<T> extends AbstractChainWrapper<T, String, UpdateChainWrapper<T>, UpdateWrapper<T>>
-    implements ChainUpdate<T>, Update<UpdateChainWrapper<T>, String> {
-
-    private BaseMapper<T> baseMapper;
+@Deprecated
+public class UpdateChainWrapper<T> extends com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper<T> {
 
     public UpdateChainWrapper(BaseMapper<T> baseMapper) {
-        super();
-        this.baseMapper = baseMapper;
-        super.wrapperChildren = new UpdateWrapper<>();
+        super(baseMapper);
     }
-
-    @Override
-    public UpdateChainWrapper<T> set(boolean condition, String column, Object val) {
-        wrapperChildren.set(condition, column, val);
-        return typedThis;
-    }
-
-    @Override
-    public UpdateChainWrapper<T> setSql(boolean condition, String sql) {
-        wrapperChildren.setSql(condition, sql);
-        return typedThis;
-    }
-
-    @Override
-    public String getSqlSet() {
-        throw ExceptionUtils.mpe("can not use this method for \"%s\"", "getSqlSet");
-    }
-
-    @Override
-    public BaseMapper<T> getBaseMapper() {
-        return baseMapper;
-    }
-
 }

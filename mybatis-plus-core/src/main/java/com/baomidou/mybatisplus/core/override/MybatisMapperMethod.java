@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,46 +16,42 @@
 package com.baomidou.mybatisplus.core.override;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import org.apache.ibatis.annotations.Flush;
-import org.apache.ibatis.annotations.MapKey;
+import com.baomidou.mybatisplus.core.metadata.PageList;
+import com.baomidou.mybatisplus.core.toolkit.Assert;
 import org.apache.ibatis.binding.BindingException;
+import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.mapping.MappedStatement;
-import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.mapping.StatementType;
 import org.apache.ibatis.reflection.MetaObject;
-import org.apache.ibatis.reflection.ParamNameResolver;
-import org.apache.ibatis.reflection.TypeParameterResolver;
 import org.apache.ibatis.session.Configuration;
-import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.session.SqlSession;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 /**
- * 重写类： org.apache.ibatis.binding.MapperMethod</br>
- * <p>不要 ParamMap 该内部类</p>
+ * 从  {@link MapperMethod} copy 过来 </br>
+ * <p> 不要内部类 ParamMap </p>
+ * <p> 不要内部类 SqlCommand </p>
+ * <p> 不要内部类 MethodSignature </p>
  *
  * @author miemie
  * @since 2018-06-09
  */
 public class MybatisMapperMethod {
-    private final SqlCommand command;
-    private final MethodSignature method;
+    private final MapperMethod.SqlCommand command;
+    private final MapperMethod.MethodSignature method;
 
     public MybatisMapperMethod(Class<?> mapperInterface, Method method, Configuration config) {
-        this.command = new SqlCommand(config, mapperInterface, method);
-        this.method = new MethodSignature(config, mapperInterface, method);
+        this.command = new MapperMethod.SqlCommand(config, mapperInterface, method);
+        this.method = new MapperMethod.MethodSignature(config, mapperInterface, method);
     }
 
-    @SuppressWarnings("unchecked")
     public Object execute(SqlSession sqlSession, Object[] args) {
         Object result;
         switch (command.getType()) {
@@ -86,19 +82,14 @@ public class MybatisMapperMethod {
                     result = executeForCursor(sqlSession, args);
                 } else {
                     Object param = method.convertArgsToSqlCommandParam(args);
-                    /*
-                     * 这下面
-                     */
-                    if (IPage.class.isAssignableFrom(method.getReturnType()) && args != null
-                        && IPage.class.isAssignableFrom(args[0].getClass())) {
-                        result = ((IPage) args[0]).setRecords(executeForIPage(sqlSession, args));
-                        /*
-                         * 这上面
-                         */
+                    // TODO 这里下面改了
+                    if (IPage.class.isAssignableFrom(method.getReturnType())) {
+                        result = executeForIPage(sqlSession, args);
+                        // TODO 这里上面改了
                     } else {
                         result = sqlSession.selectOne(command.getName(), param);
-                        if (method.returnsOptional() &&
-                            (result == null || !method.getReturnType().equals(result.getClass()))) {
+                        if (method.returnsOptional()
+                            && (result == null || !method.getReturnType().equals(result.getClass()))) {
                             result = Optional.ofNullable(result);
                         }
                     }
@@ -117,12 +108,26 @@ public class MybatisMapperMethod {
         return result;
     }
 
-    /**
-     * IPage 专用
-     */
-    private <E> List<E> executeForIPage(SqlSession sqlSession, Object[] args) {
+    @SuppressWarnings("all")
+    private <E> Object executeForIPage(SqlSession sqlSession, Object[] args) {
+        IPage<E> result = null;
+        for (Object arg : args) {
+            if (arg instanceof IPage) {
+                result = (IPage<E>) arg;
+                break;
+            }
+        }
+        Assert.notNull(result, "can't found IPage for args!");
         Object param = method.convertArgsToSqlCommandParam(args);
-        return sqlSession.selectList(command.getName(), param);
+        List<E> list = sqlSession.selectList(command.getName(), param);
+        if (list instanceof PageList) {
+            PageList<E> pageList = (PageList<E>) list;
+            result.setRecords(pageList.getRecords());
+            result.setTotal(pageList.getTotal());
+        } else {
+            result.setRecords(list);
+        }
+        return result;
     }
 
     private Object rowCountResult(int rowCount) {
@@ -221,175 +226,5 @@ public class MybatisMapperMethod {
             result = sqlSession.selectMap(command.getName(), param, method.getMapKey());
         }
         return result;
-    }
-
-    public static class SqlCommand {
-
-        private final String name;
-        private final SqlCommandType type;
-
-        public SqlCommand(Configuration configuration, Class<?> mapperInterface, Method method) {
-            final String methodName = method.getName();
-            final Class<?> declaringClass = method.getDeclaringClass();
-            MappedStatement ms = resolveMappedStatement(mapperInterface, methodName, declaringClass,
-                configuration);
-            if (ms == null) {
-                if (method.getAnnotation(Flush.class) != null) {
-                    name = null;
-                    type = SqlCommandType.FLUSH;
-                } else {
-                    throw new BindingException("Invalid bound statement (not found): "
-                        + mapperInterface.getName() + "." + methodName);
-                }
-            } else {
-                name = ms.getId();
-                type = ms.getSqlCommandType();
-                if (type == SqlCommandType.UNKNOWN) {
-                    throw new BindingException("Unknown execution method for: " + name);
-                }
-            }
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public SqlCommandType getType() {
-            return type;
-        }
-
-        private MappedStatement resolveMappedStatement(Class<?> mapperInterface, String methodName,
-                                                       Class<?> declaringClass, Configuration configuration) {
-            String statementId = mapperInterface.getName() + "." + methodName;
-            if (configuration.hasStatement(statementId)) {
-                return configuration.getMappedStatement(statementId);
-            } else if (mapperInterface.equals(declaringClass)) {
-                return null;
-            }
-            for (Class<?> superInterface : mapperInterface.getInterfaces()) {
-                if (declaringClass.isAssignableFrom(superInterface)) {
-                    MappedStatement ms = resolveMappedStatement(superInterface, methodName,
-                        declaringClass, configuration);
-                    if (ms != null) {
-                        return ms;
-                    }
-                }
-            }
-            return null;
-        }
-    }
-
-    public static class MethodSignature {
-
-        private final boolean returnsMany;
-        private final boolean returnsMap;
-        private final boolean returnsVoid;
-        private final boolean returnsCursor;
-        private final boolean returnsOptional;
-        private final Class<?> returnType;
-        private final String mapKey;
-        private final Integer resultHandlerIndex;
-        private final Integer rowBoundsIndex;
-        private final ParamNameResolver paramNameResolver;
-
-        public MethodSignature(Configuration configuration, Class<?> mapperInterface, Method method) {
-            Type resolvedReturnType = TypeParameterResolver.resolveReturnType(method, mapperInterface);
-            if (resolvedReturnType instanceof Class<?>) {
-                this.returnType = (Class<?>) resolvedReturnType;
-            } else if (resolvedReturnType instanceof ParameterizedType) {
-                this.returnType = (Class<?>) ((ParameterizedType) resolvedReturnType).getRawType();
-            } else {
-                this.returnType = method.getReturnType();
-            }
-            this.returnsVoid = void.class.equals(this.returnType);
-            this.returnsMany = configuration.getObjectFactory().isCollection(this.returnType) || this.returnType.isArray();
-            this.returnsCursor = Cursor.class.equals(this.returnType);
-            this.returnsOptional = Optional.class.equals(this.returnType);
-            this.mapKey = getMapKey(method);
-            this.returnsMap = this.mapKey != null;
-            this.rowBoundsIndex = getUniqueParamIndex(method, RowBounds.class);
-            this.resultHandlerIndex = getUniqueParamIndex(method, ResultHandler.class);
-            this.paramNameResolver = new ParamNameResolver(configuration, method);
-        }
-
-        public Object convertArgsToSqlCommandParam(Object[] args) {
-            return paramNameResolver.getNamedParams(args);
-        }
-
-        public boolean hasRowBounds() {
-            return rowBoundsIndex != null;
-        }
-
-        public RowBounds extractRowBounds(Object[] args) {
-            return hasRowBounds() ? (RowBounds) args[rowBoundsIndex] : null;
-        }
-
-        public boolean hasResultHandler() {
-            return resultHandlerIndex != null;
-        }
-
-        public ResultHandler extractResultHandler(Object[] args) {
-            return hasResultHandler() ? (ResultHandler) args[resultHandlerIndex] : null;
-        }
-
-        public String getMapKey() {
-            return mapKey;
-        }
-
-        public Class<?> getReturnType() {
-            return returnType;
-        }
-
-        public boolean returnsMany() {
-            return returnsMany;
-        }
-
-        public boolean returnsMap() {
-            return returnsMap;
-        }
-
-        public boolean returnsVoid() {
-            return returnsVoid;
-        }
-
-        public boolean returnsCursor() {
-            return returnsCursor;
-        }
-
-        /**
-         * return whether return type is {@code java.util.Optional}
-         *
-         * @return return {@code true}, if return type is {@code java.util.Optional}
-         * @since 3.5.0
-         */
-        public boolean returnsOptional() {
-            return returnsOptional;
-        }
-
-        private Integer getUniqueParamIndex(Method method, Class<?> paramType) {
-            Integer index = null;
-            final Class<?>[] argTypes = method.getParameterTypes();
-            for (int i = 0; i < argTypes.length; i++) {
-                if (paramType.isAssignableFrom(argTypes[i])) {
-                    if (index == null) {
-                        index = i;
-                    } else {
-                        throw new BindingException(method.getName() + " cannot have multiple " + paramType.getSimpleName() + " parameters");
-                    }
-                }
-            }
-            return index;
-        }
-
-        private String getMapKey(Method method) {
-            String mapKey = null;
-            if (Map.class.isAssignableFrom(method.getReturnType())) {
-                final MapKey mapKeyAnnotation = method.getAnnotation(MapKey.class);
-                if (mapKeyAnnotation != null) {
-                    mapKey = mapKeyAnnotation.value();
-                }
-            }
-            return mapKey;
-        }
     }
 }

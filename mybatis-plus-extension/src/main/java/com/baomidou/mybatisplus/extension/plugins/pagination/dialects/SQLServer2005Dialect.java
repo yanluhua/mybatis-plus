@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -56,7 +56,7 @@ public class SQLServer2005Dialect implements IDialect {
         pagingBuilder.append(sqlPartString);
 
         // if no ORDER BY is specified use fake ORDER BY field to avoid errors
-        if (StringUtils.isEmpty(orderby)) {
+        if (StringUtils.isBlank(orderby)) {
             orderby = "ORDER BY CURRENT_TIMESTAMP";
         }
         long firstParam = offset + 1;
@@ -66,6 +66,6 @@ public class SQLServer2005Dialect implements IDialect {
             ") SELECT * FROM selectTemp WHERE __row_number__ BETWEEN " +
             //FIX#299：原因：mysql中limit 10(offset,size) 是从第10开始（不包含10）,；而这里用的BETWEEN是两边都包含，所以改为offset+1
             firstParam + " AND " + secondParam + " ORDER BY __row_number__";
-        return new DialectModel(sql, firstParam, secondParam);
+        return new DialectModel(sql);
     }
 }

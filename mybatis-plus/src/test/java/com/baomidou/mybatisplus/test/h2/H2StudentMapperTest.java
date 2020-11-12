@@ -1,14 +1,30 @@
+/*
+ * Copyright (c) 2011-2019, hubin (jobob@qq.com).
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.baomidou.mybatisplus.test.h2;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.test.h2.entity.enums.GenderEnum;
-import com.baomidou.mybatisplus.test.h2.entity.enums.GradeEnum;
-import com.baomidou.mybatisplus.test.h2.entity.mapper.H2StudentMapper;
-import com.baomidou.mybatisplus.test.h2.entity.persistent.H2Student;
+import com.baomidou.mybatisplus.test.h2.entity.H2Student;
+import com.baomidou.mybatisplus.test.h2.enums.GenderEnum;
+import com.baomidou.mybatisplus.test.h2.enums.GradeEnum;
+import com.baomidou.mybatisplus.test.h2.mapper.H2StudentMapper;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -71,9 +87,21 @@ class H2StudentMapperTest extends BaseTest {
     @Test
     @Order(Integer.MAX_VALUE)
     void pageCountZeroTest() {
-        IPage page = studentMapper.selectPage(new Page<>(), Wrappers.<H2Student>query().eq("name", "无"));
+        IPage<H2Student> page = studentMapper.selectPage(new Page<>(), Wrappers.<H2Student>query().eq("name", "无"));
         if (null != page) {
             System.out.println("total: " + page.getTotal());
         }
     }
+
+    /**
+     * group 或者 order 测试
+     */
+    @Test
+    void groupByOrderBy() {
+        LambdaQueryWrapper<H2Student> wrapper = Wrappers.<H2Student>lambdaQuery().groupBy(H2Student::getAge);
+        LambdaQueryWrapper<H2Student> wrapper2 = Wrappers.<H2Student>lambdaQuery().orderByAsc(H2Student::getAge);
+        System.out.println(wrapper.getSqlSegment());
+        System.out.println(wrapper2.getSqlSegment());
+    }
+
 }

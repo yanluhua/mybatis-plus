@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -80,7 +80,7 @@ import java.util.Map;
  * @author hubin
  * @since 2016-01-23
  */
-public interface BaseMapper<T> {
+public interface BaseMapper<T> extends Mapper<T> {
 
     /**
      * 插入一条记录
@@ -106,9 +106,9 @@ public interface BaseMapper<T> {
     /**
      * 根据 entity 条件，删除记录
      *
-     * @param wrapper 实体对象封装操作类（可以为 null）
+     * @param queryWrapper 实体对象封装操作类（可以为 null,里面的 entity 用于生成 where 语句）
      */
-    int delete(@Param(Constants.WRAPPER) Wrapper<T> wrapper);
+    int delete(@Param(Constants.WRAPPER) Wrapper<T> queryWrapper);
 
     /**
      * 删除（根据ID 批量删除）
@@ -195,7 +195,7 @@ public interface BaseMapper<T> {
      * @param page         分页查询条件（可以为 RowBounds.DEFAULT）
      * @param queryWrapper 实体对象封装操作类（可以为 null）
      */
-    IPage<T> selectPage(IPage<T> page, @Param(Constants.WRAPPER) Wrapper<T> queryWrapper);
+    <E extends IPage<T>> E selectPage(E page, @Param(Constants.WRAPPER) Wrapper<T> queryWrapper);
 
     /**
      * 根据 Wrapper 条件，查询全部记录（并翻页）
@@ -203,5 +203,5 @@ public interface BaseMapper<T> {
      * @param page         分页查询条件
      * @param queryWrapper 实体对象封装操作类
      */
-    IPage<Map<String, Object>> selectMapsPage(IPage<T> page, @Param(Constants.WRAPPER) Wrapper<T> queryWrapper);
+    <E extends IPage<Map<String, Object>>> E selectMapsPage(E page, @Param(Constants.WRAPPER) Wrapper<T> queryWrapper);
 }

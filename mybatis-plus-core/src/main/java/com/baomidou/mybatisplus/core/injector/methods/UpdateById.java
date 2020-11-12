@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -32,14 +32,11 @@ public class UpdateById extends AbstractMethod {
     @Override
     public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
         SqlMethod sqlMethod = SqlMethod.UPDATE_BY_ID;
+        final String additional = optlockVersion(tableInfo) + tableInfo.getLogicDeleteSql(true, true);
         String sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(),
-            sqlSet(false, false, tableInfo, false, ENTITY, ENTITY_DOT),
-            tableInfo.getKeyColumn(), ENTITY_DOT + tableInfo.getKeyProperty(),
-            new StringBuilder("<if test=\"et instanceof java.util.Map\">")
-                .append("<if test=\"et.MP_OPTLOCK_VERSION_ORIGINAL!=null\">")
-                .append(" AND ${et.MP_OPTLOCK_VERSION_COLUMN}=#{et.MP_OPTLOCK_VERSION_ORIGINAL}")
-                .append("</if></if>"));
+            sqlSet(tableInfo.isWithLogicDelete(), false, tableInfo, false, ENTITY, ENTITY_DOT),
+            tableInfo.getKeyColumn(), ENTITY_DOT + tableInfo.getKeyProperty(), additional);
         SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, modelClass);
-        return addUpdateMappedStatement(mapperClass, modelClass, sqlMethod.getMethod(), sqlSource);
+        return addUpdateMappedStatement(mapperClass, modelClass, getMethod(sqlMethod), sqlSource);
     }
 }

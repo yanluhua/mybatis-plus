@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -22,6 +22,7 @@ import com.baomidou.mybatisplus.generator.config.FileOutConfig;
 import com.baomidou.mybatisplus.generator.config.IFileCreate;
 import com.baomidou.mybatisplus.generator.config.builder.ConfigBuilder;
 
+import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -56,7 +57,25 @@ public abstract class InjectionConfig {
     private IFileCreate fileCreate;
 
     /**
-     * 注入自定义 Map 对象
+     * 注入自定义 Map 对象，针对所有表的全局参数
      */
     public abstract void initMap();
+
+    /**
+     * 依据表相关信息，从三方获取到需要元数据，处理方法环境里面
+     *
+     * @param tableInfo
+     */
+    public void initTableMap(TableInfo tableInfo) {
+        // 子类重写注入表对应补充信息
+    }
+
+    /**
+     * 模板待渲染 Object Map 预处理<br>
+     * com.baomidou.mybatisplus.generator.engine.AbstractTemplateEngine
+     * 方法： getObjectMap 结果处理
+     */
+    public Map<String, Object> prepareObjectMap(Map<String, Object> objectMap) {
+        return objectMap;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,20 +15,12 @@
  */
 package com.baomidou.mybatisplus.extension.plugins.pagination.dialects;
 
-import com.baomidou.mybatisplus.core.toolkit.StringPool;
-import com.baomidou.mybatisplus.extension.plugins.pagination.DialectModel;
-
 /**
  * HSQL 数据库分页语句组装实现
  *
  * @author hubin
  * @since 2016-01-23
  */
-public class HSQLDialect implements IDialect {
-
-    @Override
-    public DialectModel buildPaginationSql(String originalSql, long offset, long limit) {
-        String sql = originalSql + " limit " + FIRST_MARK + StringPool.COMMA + SECOND_MARK;
-        return new DialectModel(sql, offset, limit).setConsumerChain();
-    }
+@Deprecated
+public class HSQLDialect extends PostgreDialect {
 }

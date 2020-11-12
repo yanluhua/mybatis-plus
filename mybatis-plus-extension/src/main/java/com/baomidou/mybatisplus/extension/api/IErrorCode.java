@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, hubin (jobob@qq.com).
+ * Copyright (c) 2011-2020, baomidou (jobob@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,6 +21,8 @@ package com.baomidou.mybatisplus.extension.api;
  * @author hubin
  * @since 2018-06-05
  */
+// 使用度较低，如果使用请及时迁移本地 3.5.0 移除
+@Deprecated
 public interface IErrorCode {
 
     /**
